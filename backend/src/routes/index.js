@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const health = require('./health');
 const notes = require('./notes');
+const summary = require('./summary');
 const flashcards = require('./flashcards');
 const mcq = require('./mcq');
 const viva = require('./viva');
@@ -11,6 +12,7 @@ const router = Router();
 
 router.use('/health', health);
 router.use('/notes', notes);
+router.use('/summary', summary);
 router.use('/flashcards', flashcards);
 router.use('/mcq', mcq);
 router.use('/viva', viva);

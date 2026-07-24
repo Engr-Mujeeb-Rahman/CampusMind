@@ -1,5 +1,5 @@
 const gemini = require('../services/gemini');
-const flashcardPrompt = require('../prompts/flashcardPrompt');
+const summaryPrompt = require('../prompts/summaryPrompt');
 const ApiError = require('../utils/ApiError');
 
 async function generate(req, res) {
@@ -9,7 +9,7 @@ async function generate(req, res) {
     throw ApiError.badRequest('The "content" field is required and must be a non-empty string.');
   }
 
-  const preparedPrompt = flashcardPrompt.build(content.trim());
+  const preparedPrompt = summaryPrompt.build(content.trim());
   const result = await gemini.generate(preparedPrompt);
 
   res.json({

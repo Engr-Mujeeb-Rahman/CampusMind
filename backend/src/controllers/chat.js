@@ -1,4 +1,5 @@
 const gemini = require('../services/gemini');
+const chatPrompt = require('../prompts/chatPrompt');
 const ApiError = require('../utils/ApiError');
 
 async function send(req, res) {
@@ -8,7 +9,8 @@ async function send(req, res) {
     throw ApiError.badRequest('The "message" field is required and must be a non-empty string.');
   }
 
-  const result = await gemini.chat(message.trim());
+  const preparedPrompt = chatPrompt.build(message.trim());
+  const result = await gemini.chat(preparedPrompt);
 
   res.json({
     success: true,

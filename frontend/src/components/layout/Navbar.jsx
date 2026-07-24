@@ -1,80 +1,39 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Link } from 'react-router-dom'
+import { Menu } from 'lucide-react'
+import { LOGO_URL } from '../../assets/images'
+import { LANDING_NAV_LINKS } from '../../constants/navigation'
+import Button from '../ui/Button'
 
-function Navbar() {
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-  const navItems = [
-    { label: "Features", href: "#features" },
-    { label: "How It Works", href: "#how-it-works" },
-  ];
-
+export default function Navbar() {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-slate-200/70 bg-white/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-10">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          {/* Replace this with your actual logo image later */}
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white font-bold">
-            C
-          </div>
-
-          <span className="text-xl font-bold text-blue-600">
+    <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md">
+      <div className="flex justify-between items-center h-16 px-margin-mobile md:px-margin-desktop w-full max-w-container-max mx-auto">
+        <Link to="/" className="flex items-center gap-3">
+          <img alt="CampusMind Logo" className="h-8 w-auto" src={LOGO_URL} />
+          <h1 className="font-headline-lg text-headline-lg font-bold text-primary">
             CampusMind
-          </span>
+          </h1>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-8 md:flex">
-          {navItems.map((item) => (
+        <nav className="hidden md:flex items-center gap-8">
+          {LANDING_NAV_LINKS.map((link) => (
             <a
-              key={item.label}
-              href={item.href}
-              className="text-sm font-medium text-slate-600 transition hover:text-blue-600"
+              key={link.href}
+              href={link.href}
+              className="text-on-surface-variant font-label-md text-label-md hover:text-primary transition-colors"
             >
-              {item.label}
+              {link.label}
             </a>
           ))}
-
-          <button className="rounded-full bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">
+          <Button as={Link} to="/dashboard" rounded="full" size="md">
             Get Started
-          </button>
+          </Button>
         </nav>
 
-        {/* Mobile Button */}
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="md:hidden"
-          aria-label="Toggle navigation"
-        >
-          {mobileOpen ? <X size={26} /> : <Menu size={26} />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {mobileOpen && (
-        <div className="border-t border-slate-200 bg-white md:hidden">
-          <nav className="flex flex-col p-4">
-            {navItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className="rounded-lg px-3 py-3 text-slate-700 hover:bg-slate-100"
-              >
-                {item.label}
-              </a>
-            ))}
-
-            <button className="mt-3 rounded-xl bg-blue-600 py-3 font-semibold text-white">
-              Get Started
-            </button>
-          </nav>
+        <div className="md:hidden">
+          <Menu className="size-6 text-on-surface-variant" />
         </div>
-      )}
+      </div>
     </header>
-  );
+  )
 }
-
-export default Navbar;

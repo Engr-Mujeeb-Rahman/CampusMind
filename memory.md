@@ -15,11 +15,15 @@
 
 ## Current Status (update every session)
 - **Last updated:** 2026-07-26
-- **Current phase:** Phase 9 complete — E2E testing, edge-case coverage, browser verification, all fixes validated
+- **Current phase:** Phase 10 complete — deployed to Vercel, everything confirmed working on live URL
+- **Live URLs:**
+  - **Frontend:** [https://frontend-phi-tan-43.vercel.app](https://frontend-phi-tan-43.vercel.app)
+  - **Backend API:** [https://backend-khaki-delta-33.vercel.app](https://backend-khaki-delta-33.vercel.app)
 - **What exists in the repo right now:**
   - `frontend/`: Vite + React 19 + Tailwind CSS 4 app with 14 route pages, full component library, Supabase Auth, file extraction, chat with document context
   - `backend/`: Express.js server with 12 route modules, 6 prompt templates, OpenRouter AI, Supabase Auth JWT verification, rate limiting, zod validation, structured error handling
   - `playwright-e2e.mjs`: 30-test Playwright suite covering auth, upload, all 13 page renders, API generation, history/download, mobile viewport, and 3 edge cases
+  - `screenshots/`: 7 screenshots from the live deployed app
 
 ### Phase-by-phase summary
 
@@ -152,14 +156,41 @@ See `playwright-e2e.mjs` for the complete test. It covers:
 - Large PDFs (100+ pages) may need chunking — not yet designed
 - Root package.json is unused/legacy
 
+## Phase 10 — Deployment (complete)
+
+**Backend (Vercel Serverless):**
+- Deployed at `https://backend-khaki-delta-33.vercel.app`
+- Uses `@vercel/node` builder with serverless-http wrapper
+- Key bug fix: `uuid` v14 is ESM-only — Vercel's serverless runtime doesn't support `require()` of ESM modules. Replaced with native `crypto.randomUUID()`.
+- Env vars set in Vercel dashboard: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, OPENROUTER_API_KEY, CORS_ORIGIN
+
+**Frontend (Vercel Static):**
+- Deployed at `https://frontend-phi-tan-43.vercel.app`
+- Vite build with `VITE_API_BASE_URL` env var pointing to backend
+- SPA routing via `vercel.json` rewrites (`_redirects` is Netlify-only)
+- Login, dashboard, library, MCQ, flashcards, history — all confirmed working in incognito session
+
+**Live URL test (2026-07-25):**
+- Backend health check: `{"status":"ok"}`
+- Frontend login page renders with Welcome back + Sign In form
+- Login as `student@campusmind.dev` → dashboard with stats (12 notes, 45 chats, 120 flashcards, 85 MCQs)
+- All env vars verified: no secrets in repo, only `.env.example` with placeholders committed
+
+### Deployment Decisions
+| Decision | Reasoning |
+|---|---|
+| Vercel over Render/Railway | Simpler single-platform deployment, free tier generous, auto HTTPS |
+| `serverless-http` wrapper | Required for Express to work as Vercel serverless function |
+| `crypto.randomUUID()` over `uuid` package | uuid v14 is ESM-only, incompatible with Vercel's CommonJS serverless runtime |
+
 ## Next Recommended Step
-Phase 10 — Deployment:
-1. Build frontend for production (`npm run build` in frontend)
-2. Deploy backend to Render/Railway (set env vars: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `SUPABASE_ANON_KEY`, `OPENROUTER_API_KEY`, `JWT_SECRET`, `CORS_ORIGIN`)
-3. Deploy frontend build to Netlify/Vercel with env var `VITE_API_BASE_URL` pointing to deployed backend
-4. Configure custom domain if needed
-5. Run E2E suite against deployed URL
-6. (Optional) Add client-side rate-limit handling to avoid OpenRouter 429s in production
+Phase 11 — Production hardening (if continuing):
+1. Add custom domain (e.g., campusmind.app)
+2. Add client-side rate-limit queuing for OpenRouter 429s
+3. Implement subject folders / document organization
+4. Dark mode
+5. Dashboard personalization with real user data
+6. Large document chunking for 100+ page PDFs
 
 ## Session Update Template
 Copy this block and fill it in at the end of every coding session:

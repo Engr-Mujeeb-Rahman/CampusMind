@@ -1,22 +1,10 @@
 import { UPLOAD_RETRY } from '../constants/uploadConfig';
 import { UPLOAD_STAGE } from '../constants/uploadStage';
 import { apiClient } from './apiClient';
+import { extractTextFromFile } from '../utils/extractors';
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function readFileAsText(file) {
-  return new Promise((resolve, reject) => {
-    if (file.type === 'text/plain' || file.type === 'text/markdown' || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsText(file);
-    } else {
-      reject(new Error('Only .txt and .md files are supported for processing.'));
-    }
-  });
 }
 
 export function processFile(fileRecord, callbacks) {
@@ -43,15 +31,20 @@ export function processFile(fileRecord, callbacks) {
         if (cancelled) return;
 
         callbacks.onProgress(55, UPLOAD_STAGE.EXTRACT);
-        const content = await readFileAsText(file);
+        const content = await extractTextFromFile(file);
         if (cancelled) return;
 
         callbacks.onProgress(70, UPLOAD_STAGE.PROCESS);
-        await apiClient.post('/workflows/smart-notes', { content });
+        const body = {
+          title: file.name,
+          content,
+          subject_id: fileRecord.subject_id || null,
+        };
+        const response = await apiClient.post('/upload', body);
         if (cancelled) return;
 
         callbacks.onProgress(100, UPLOAD_STAGE.FINALIZE);
-        callbacks.onComplete({ fileId: fileRecord.id });
+        callbacks.onComplete({ documentId: response.id, title: file.name });
         return;
       } catch (error) {
         if (cancelled) return;

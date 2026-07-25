@@ -101,5 +101,7 @@ export default function useUpload() {
     };
   }, []);
 
-  return { fileRecords, addFiles, removeFile, clearFiles };
+  const completedCount = fileRecords.filter((r) => r.status === UPLOAD_STATUS.COMPLETED).length;
+
+  return { fileRecords, addFiles, removeFile, clearFiles, completedCount };
 }

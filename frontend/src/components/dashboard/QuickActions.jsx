@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { QUICK_ACTIONS } from '../../constants/dashboard';
 import { Upload, MessageCircle, Calendar } from 'lucide-react';
 import Button from '../ui/Button';
@@ -10,6 +11,8 @@ const iconMap = {
 };
 
 export default function QuickActions() {
+  const navigate = useNavigate();
+
   return (
     <div className="col-span-12 lg:col-span-12 flex flex-wrap gap-4 mb-2">
       {QUICK_ACTIONS.map((action) => {
@@ -20,6 +23,7 @@ export default function QuickActions() {
             variant={action.variant}
             className="flex-1 min-w-[160px] py-4 px-6 rounded-xl shadow-sm"
             icon={IconComponent}
+            onClick={() => navigate(action.path)}
           >
             {action.label}
           </Button>

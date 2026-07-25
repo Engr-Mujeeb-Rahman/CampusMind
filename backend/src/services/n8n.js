@@ -13,18 +13,24 @@ async function triggerWorkflow(workflowName, payload) {
 
   logger.debug('n8n.triggerWorkflow', { workflow: workflowName, url });
 
+  console.log('[n8n.triggerWorkflow] Starting', { workflow: workflowName, url, payloadKeys: Object.keys(payload), timeoutMs });
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
+    const requestBody = JSON.stringify(payload);
+    console.log('[n8n.triggerWorkflow] Sending to n8n', { bodyLength: requestBody.length, contentLength: payload.content?.length });
+
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: requestBody,
       signal: controller.signal,
     });
 
     clearTimeout(timer);
+    console.log('[n8n.triggerWorkflow] n8n responded', { status: response.status, ok: response.ok });
 
     if (!response.ok) {
       const text = await response.text().catch(() => '');
@@ -33,6 +39,7 @@ async function triggerWorkflow(workflowName, payload) {
         body: text,
         workflow: workflowName,
       });
+      console.log('[n8n.triggerWorkflow] Error body', { errorBody: text.substring(0, 500) });
       throw ApiError.badRequest(
         `n8n workflow returned status ${response.status}`,
         'N8N_WEBHOOK_ERROR'
@@ -40,10 +47,12 @@ async function triggerWorkflow(workflowName, payload) {
     }
 
     const data = await response.json().catch(() => ({}));
+    console.log('[n8n.triggerWorkflow] Success', { dataKeys: Object.keys(data) });
     logger.info('n8n workflow completed', { workflow: workflowName, status: response.status });
     return { success: true, data };
   } catch (err) {
     clearTimeout(timer);
+    console.log('[n8n.triggerWorkflow] Caught error', { name: err.name, message: err.message });
 
     if (err instanceof ApiError) throw err;
 

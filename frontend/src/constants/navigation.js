@@ -7,14 +7,17 @@ import {
   Upload,
   MessageCircle,
   StickyNote,
+  Clock,
 } from 'lucide-react'
 
 export const SIDEBAR_NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
   { id: 'study-tools', label: 'Study Tools', icon: BookOpen, path: '/revision' },
   { id: 'chat', label: 'Chat', icon: MessageCircle, path: '/chat' },
-  { id: 'library', label: 'Library', icon: Library, path: '/upload' },
+  { id: 'library', label: 'Library', icon: Library, path: '/library' },
+  { id: 'upload', label: 'Upload', icon: Upload, path: '/upload' },
   { id: 'revision-notes', label: 'Revision Notes', icon: StickyNote, path: '/revision' },
+  { id: 'history', label: 'History', icon: Clock, path: '/history' },
   { id: 'schedule', label: 'Schedule', icon: Calendar, path: '/planner' },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/dashboard' },
 ]

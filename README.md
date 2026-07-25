@@ -1,7 +1,3 @@
-# CampusMind
-<<<<<<< Updated upstream
-### Your Personal University Learning Assistant
-=======
-##### Your Personal University Learning Assistant
->>>>>>> Stashed changes
-AI-powered University Learning Assistant.
+# CampusMind — Your Personal University Learning Assistant
+
+AI-powered study assistant for university students. Upload your notes, get AI-generated summaries, MCQs, flashcards, viva questions, revision notes, and a personalized study plan.

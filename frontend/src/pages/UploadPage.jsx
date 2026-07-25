@@ -1,4 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import UploadHeader from '../components/upload/UploadHeader';
 import UploadZone from '../components/upload/UploadZone';
@@ -7,7 +9,8 @@ import ActionPrompt from '../components/upload/ActionPrompt';
 import useUpload from '../hooks/useUpload';
 
 export default function UploadPage() {
-  const { fileRecords, addFiles, removeFile } = useUpload();
+  const navigate = useNavigate();
+  const { fileRecords, addFiles, removeFile, completedCount } = useUpload();
   const [isDragging, setIsDragging] = useState(false);
   const dragCounter = useRef(0);
 
@@ -65,6 +68,19 @@ export default function UploadPage() {
           fileRecords={fileRecords}
           onCancel={removeFile}
         />
+        {completedCount > 0 && (
+          <div className="w-full mt-4 p-4 bg-primary-fixed/30 border border-primary/20 rounded-xl flex items-center justify-between">
+            <p className="font-body-md text-on-surface">
+              {completedCount} file{completedCount > 1 ? 's' : ''} uploaded successfully
+            </p>
+            <button
+              onClick={() => navigate('/library')}
+              className="flex items-center gap-2 text-primary font-label-md hover:underline"
+            >
+              View Library <ArrowRight className="size-4" />
+            </button>
+          </div>
+        )}
         <ActionPrompt />
       </div>
     </DashboardLayout>

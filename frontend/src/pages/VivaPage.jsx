@@ -13,6 +13,8 @@ export default function VivaPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState({ total: 0, answered: 0, proficiency: '0%' });
+  const params = new URLSearchParams(window.location.search);
+  const documentId = params.get('document_id');
 
   const toggleAnswer = (id) => {
     setRevealedAnswers((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -35,8 +37,12 @@ export default function VivaPage() {
       const data = await apiClient.post('/viva/generate', {
         project: project.trim(),
         count: 6,
+        document_id: documentId,
       });
-      const parsed = JSON.parse(data.response);
+      const parsed = data.questions;
+      if (!parsed || !Array.isArray(parsed)) {
+        throw new Error('Invalid response format from server.');
+      }
       const mapped = parsed.map((q, i) => ({
         id: `q${i}`,
         category: q.category,

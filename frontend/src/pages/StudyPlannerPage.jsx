@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Sparkles, Book, Clock, CheckCircle, RefreshCw, Calendar,
   ChevronLeft, ChevronRight, Info, Zap, TrendingUp, GripHorizontal,
@@ -8,6 +9,9 @@ import DashboardLayout from '../components/layout/DashboardLayout';
 import { apiClient, ApiError } from '../services/apiClient';
 
 export default function StudyPlannerPage() {
+  const [searchParams] = useSearchParams();
+  const documentId = searchParams.get('document_id');
+
   const [subject, setSubject] = useState('');
   const [deadline, setDeadline] = useState('');
   const [hoursPerDay, setHoursPerDay] = useState('3 Hours');
@@ -25,9 +29,13 @@ export default function StudyPlannerPage() {
         subject: subject.trim(),
         deadline,
         hoursPerDay,
+        document_id: documentId,
       });
-      const parsed = JSON.parse(data.response);
-      const mapped = parsed.map((item, i) => ({
+      const plan = data.plan;
+      if (!plan || !Array.isArray(plan) || plan.length === 0) {
+        throw new Error('Invalid plan data received.');
+      }
+      const mapped = plan.map((item, i) => ({
         day: `Day ${String(item.day).padStart(2, '0')}`,
         title: item.title,
         topics: item.topics || [],
@@ -37,7 +45,7 @@ export default function StudyPlannerPage() {
         variant: i === 2 ? 'primary' : 'default',
         description: item.focus ? `${item.hours}h focus: ${item.focus}` : `${item.hours}h session`,
         planned: `${item.hours} Hours`,
-        progress: Math.min(Math.round((i + 1) / parsed.length * 100), 100),
+        progress: Math.min(Math.round((i + 1) / plan.length * 100), 100),
       }));
       setTimetable(mapped);
       setIsGenerated(true);

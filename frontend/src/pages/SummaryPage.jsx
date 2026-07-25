@@ -1,14 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Share2, Printer, FileText, Lightbulb, Book, Sparkles } from 'lucide-react';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import Button from '../components/ui/Button';
 import { apiClient, ApiError } from '../services/apiClient';
 
 export default function SummaryPage() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const documentId = searchParams.get('document_id');
+
   const [content, setContent] = useState('');
   const [summary, setSummary] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (documentId) {
+      handleGenerateFromDoc();
+    }
+  }, [documentId]);
+
+  const handleGenerateFromDoc = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await apiClient.post('/summary/generate', { document_id: documentId });
+      setSummary(data.summary);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to generate summary.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleGenerate = async () => {
     if (!content.trim()) return;
@@ -16,8 +40,7 @@ export default function SummaryPage() {
     setError(null);
     try {
       const data = await apiClient.post('/summary/generate', { content });
-      const parsed = JSON.parse(data.response);
-      setSummary(parsed);
+      setSummary(data.summary);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to generate summary.');
     } finally {
@@ -29,12 +52,12 @@ export default function SummaryPage() {
     <DashboardLayout>
       <div className="w-full max-w-[800px] mx-auto flex flex-col gap-6">
         <nav className="flex items-center gap-2 text-label-md text-on-surface-variant mb-2">
-          <a href="/dashboard" className="hover:text-primary transition-colors">Home</a>
+          <button onClick={() => documentId ? navigate(`/documents/${documentId}`) : navigate('/dashboard')} className="hover:text-primary transition-colors">Back</button>
           <span className="text-xs" aria-hidden="true">›</span>
           <span className="text-primary font-bold">Summary</span>
         </nav>
 
-        {!summary && (
+        {!summary && !documentId && (
           <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-6">
             <label className="font-label-md text-on-surface mb-2 block">Paste your notes content below to generate a summary</label>
             <textarea
@@ -79,20 +102,16 @@ export default function SummaryPage() {
                 <h2 className="font-headline-xl text-headline-xl text-on-surface">{summary.title}</h2>
               </div>
               <div className="hidden sm:flex gap-2">
-                <button className="p-2 rounded-xl bg-surface-container hover:bg-surface-container-high transition-colors text-on-surface-variant focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="Share">
+                <button className="p-2 rounded-xl bg-surface-container hover:bg-surface-container-high transition-colors text-on-surface-variant" aria-label="Share">
                   <Share2 className="size-5" aria-hidden="true" />
                 </button>
-                <button className="p-2 rounded-xl bg-surface-container hover:bg-surface-container-high transition-colors text-on-surface-variant focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" aria-label="Print">
+                <button className="p-2 rounded-xl bg-surface-container hover:bg-surface-container-high transition-colors text-on-surface-variant" aria-label="Print">
                   <Printer className="size-5" aria-hidden="true" />
                 </button>
               </div>
             </div>
 
-            <article className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-6 md:p-8 flex flex-col gap-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 opacity-5 pointer-events-none">
-                <FileText className="size-32 text-primary" aria-hidden="true" />
-              </div>
-
+            <article className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-6 md:p-8 flex flex-col gap-6">
               <section className="border-b border-surface-variant pb-6">
                 <p className="font-body-md text-on-surface-variant leading-relaxed">{summary.intro}</p>
               </section>
@@ -130,8 +149,8 @@ export default function SummaryPage() {
               </section>
             </article>
 
-            <div className="flex flex-wrap justify-center gap-3 sticky bottom-8 z-30">
-              <Button variant="primary" size="md" className="rounded-full shadow-lg" icon={FileText} onClick={() => setSummary(null)}>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button variant="primary" size="md" icon={FileText} onClick={() => setSummary(null)}>
                 Generate New
               </Button>
             </div>

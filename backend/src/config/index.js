@@ -31,6 +31,11 @@ const config = {
     webhookUrl: process.env.N8N_WEBHOOK_URL || '',
     timeoutMs: parseInt(process.env.N8N_TIMEOUT_MS, 10) || 15000,
   },
+  supabase: {
+    url: (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '').replace(/\/rest\/v1\/?$/, ''),
+    anonKey: process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+  },
 };
 
 module.exports = config;

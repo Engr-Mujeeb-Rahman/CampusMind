@@ -14,8 +14,8 @@
 `PRD.md` (what) · `Architecture.md` (how it's structured) · `Rules.md` (guardrails) · `phases.md` (build order) · `design.md` (visual/UX rules) · this file (current state)
 
 ## Current Status (update every session)
-- **Last updated:** 2026-07-26
-- **Current phase:** Phase 10 complete — deployed to Vercel, everything confirmed working on live URL
+- **Last updated:** 2026-07-26 (session 2)
+- **Current phase:** Phase 10 complete — deployed to Vercel; email confirmation disabled via Supabase Management API; new signups now work without verification email
 - **Live URLs:**
   - **Frontend:** [https://frontend-phi-tan-43.vercel.app](https://frontend-phi-tan-43.vercel.app)
   - **Backend API:** [https://backend-khaki-delta-33.vercel.app](https://backend-khaki-delta-33.vercel.app)
@@ -147,6 +147,14 @@ See `playwright-e2e.mjs` for the complete test. It covers:
 | "Know It" / "Still Learning" on flip side | Design.md specifies this interaction; buttons only appear after answer is revealed |
 | End-of-quiz summary for MCQ | Design.md specifies "End-of-quiz summary screen with review of missed questions + explanations" |
 | API-only generation tests in E2E (not browser) | OpenRouter free tier rate-limits rapid repeated calls; API tests verify correctness without 2-min waits per test |
+
+## Fixes Applied Post-Deployment
+
+**2026-07-26 — Email confirmation disabled (Supabase Management API):**
+- Problem: Supabase email sender quota exhausted from testing — new signups failed with "email rate limit exceeded" because every signup required a confirmation email.
+- Fix: Called `PATCH https://api.supabase.com/v1/projects/hrjwpuxtxlfvytbpsvlh/config/auth` with `{"mailer_autoconfirm": true}` using a Supabase Personal Access Token.
+- Result: `mailer_autoconfirm` flipped from `false` to `true`. New users are auto-confirmed without a verification email. Verified: signup for `testuser@campusmind.dev` returned 201 with `email_verified: true` and a session, no email sent.
+- Note: This is a Supabase project-level setting, not a code change, so no commit was needed.
 
 ## Known Issues / Risks
 - Dashboard components (WelcomeBanner, StatsGrid, RecentActivity) use hardcoded constants — not yet driven by real user data

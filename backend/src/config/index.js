@@ -27,7 +27,8 @@ const config = {
     model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
   },
   n8n: {
-    webhookBaseUrl: process.env.N8N_WEBHOOK_BASE_URL || 'http://localhost:5678',
+    webhookUrl: process.env.N8N_WEBHOOK_URL || '',
+    timeoutMs: parseInt(process.env.N8N_TIMEOUT_MS, 10) || 15000,
   },
 };
 

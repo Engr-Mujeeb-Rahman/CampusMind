@@ -7,6 +7,7 @@ const mcq = require('./mcq');
 const viva = require('./viva');
 const planner = require('./planner');
 const chat = require('./chat');
+const workflow = require('./workflow');
 const aiLimiter = require('../middleware/rateLimiter');
 
 const router = Router();
@@ -19,5 +20,6 @@ router.use('/mcq', aiLimiter, mcq);
 router.use('/viva', aiLimiter, viva);
 router.use('/planner', aiLimiter, planner);
 router.use('/chat', aiLimiter, chat);
+router.use('/workflows', workflow);
 
 module.exports = router;

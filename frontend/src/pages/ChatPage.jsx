@@ -1,56 +1,96 @@
+import { useState, useRef, useEffect } from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import ChatHeader from '../components/chat/ChatHeader';
 import ChatMessage from '../components/chat/ChatMessage';
 import ChatTypingIndicator from '../components/chat/ChatTypingIndicator';
 import SuggestedChips from '../components/chat/SuggestedChips';
 import ChatInput from '../components/chat/ChatInput';
+import { apiClient, ApiError } from '../services/apiClient';
 
-const MESSAGES = [
-  {
-    id: '1',
-    type: 'ai',
-    content: "Hi there! I've analyzed your upcoming syllabus for CS301. You have a mid-term coming up in 5 days focusing on Data Structures. Would you like to review some complex topics like AVL Trees or Red-Black Trees?",
-    timestamp: '10:42 AM',
-  },
-  {
-    id: '2',
-    type: 'student',
-    content: 'Yes, please! AVL trees are still a bit confusing. Can you explain the rotation logic again with some visual-like steps?',
-    timestamp: '10:43 AM',
-  },
-  {
-    id: '3',
-    type: 'ai',
-    content: 'Of course! Think of AVL rotations as "balancing a seesaw". When one side gets too heavy (height difference > 1), we rotate to restore balance.\n\nLeft Rotation (Single):\n\n  A (Root)\n   \\\n    B\n     \\\n      C (Heavy)\n\nStep 1: Move B up to become new Root\nStep 2: A becomes Left child of B\nResult:\n    B\n   / \\\n  A   C\n\nWould you like me to generate a practice quiz on this specific rotation?',
-    timestamp: '10:44 AM',
-  },
-];
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+function formatTimestamp() {
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hh = h % 12 || 12;
+  return `${hh}:${m.toString().padStart(2, '0')} ${ampm}`;
+}
 
 export default function ChatPage() {
+  const [messages, setMessages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const addMessage = (type, content) => {
+    const msg = { id: generateId(), type, content, timestamp: formatTimestamp() };
+    setMessages((prev) => [...prev, msg]);
+  };
+
+  const handleSend = async (text) => {
+    addMessage('student', text);
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await apiClient.post('/chat/send', { message: text });
+      addMessage('ai', data.response);
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : 'Network error. Please try again.';
+      setError(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleChipClick = (chip) => {
+    handleSend(chip.label);
+  };
+
   return (
     <DashboardLayout className="h-screen overflow-hidden">
       <div className="h-full flex flex-col">
         <ChatHeader />
 
-        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-6 space-y-6 flex flex-col" id="chat-container">
-          <div className="max-w-3xl mx-auto w-full text-center py-10 opacity-70">
-            <div className="inline-flex items-center gap-2 bg-surface-container px-4 py-1.5 rounded-full mb-4">
-              <span className="text-[13px] font-medium">Academic integrity guidelines apply</span>
+        <div ref={containerRef} className="flex-1 overflow-y-auto px-4 md:px-6 py-6 space-y-6 flex flex-col" id="chat-container">
+          {messages.length === 0 && !isLoading && (
+            <div className="max-w-3xl mx-auto w-full text-center py-10 opacity-70">
+              <div className="inline-flex items-center gap-2 bg-surface-container px-4 py-1.5 rounded-full mb-4">
+                <span className="text-[13px] font-medium">Academic integrity guidelines apply</span>
+              </div>
+              <h3 className="font-headline-lg text-headline-lg text-on-surface mb-2">Hello, Alex!</h3>
+              <p className="font-body-sm text-on-surface-variant">How can I assist with your studies today?</p>
             </div>
-            <h3 className="font-headline-lg text-headline-lg text-on-surface mb-2">Hello, Alex!</h3>
-            <p className="font-body-sm text-on-surface-variant">How can I assist with your studies today?</p>
-          </div>
+          )}
 
-          {MESSAGES.map((msg) => (
+          {messages.map((msg) => (
             <ChatMessage key={msg.id} message={msg} />
           ))}
 
-          <ChatTypingIndicator />
+          {isLoading && <ChatTypingIndicator />}
+
+          {error && (
+            <div className="max-w-3xl mx-auto w-full flex justify-center">
+              <div className="bg-error-container text-on-error-container px-4 py-3 rounded-xl flex items-center gap-3 shadow-sm">
+                <span className="text-sm">{error}</span>
+                <button onClick={() => setError(null)} className="text-sm font-medium underline hover:no-underline">Dismiss</button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="px-4 md:px-6 pb-4 md:pb-6 pt-2 bg-gradient-to-t from-background via-background to-transparent shrink-0">
-          <SuggestedChips onChipClick={() => {}} />
-          <ChatInput onSend={() => {}} onSuggest={() => {}} />
+          <SuggestedChips onChipClick={handleChipClick} />
+          <ChatInput onSend={handleSend} onSuggest={() => {}} />
           <p className="text-center text-[11px] text-on-surface-variant mt-3">
             CampusMind can make mistakes. Check important info.
           </p>

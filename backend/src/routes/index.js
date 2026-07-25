@@ -7,16 +7,17 @@ const mcq = require('./mcq');
 const viva = require('./viva');
 const planner = require('./planner');
 const chat = require('./chat');
+const aiLimiter = require('../middleware/rateLimiter');
 
 const router = Router();
 
 router.use('/health', health);
 router.use('/notes', notes);
-router.use('/summary', summary);
-router.use('/flashcards', flashcards);
-router.use('/mcq', mcq);
-router.use('/viva', viva);
-router.use('/planner', planner);
-router.use('/chat', chat);
+router.use('/summary', aiLimiter, summary);
+router.use('/flashcards', aiLimiter, flashcards);
+router.use('/mcq', aiLimiter, mcq);
+router.use('/viva', aiLimiter, viva);
+router.use('/planner', aiLimiter, planner);
+router.use('/chat', aiLimiter, chat);
 
 module.exports = router;

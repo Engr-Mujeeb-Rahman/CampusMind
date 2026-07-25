@@ -1,30 +1,34 @@
 class ApiError extends Error {
-  constructor(statusCode, message, details = null) {
+  constructor(statusCode, message, code = null) {
     super(message);
     this.statusCode = statusCode;
-    this.details = details;
+    this.code = code;
     this.isOperational = true;
     Error.captureStackTrace(this, this.constructor);
   }
 
-  static badRequest(message, details) {
-    return new ApiError(400, message, details);
+  static badRequest(message, code = 'VALIDATION_ERROR') {
+    return new ApiError(400, message, code);
   }
 
-  static unauthorized(message = 'Unauthorized') {
-    return new ApiError(401, message);
+  static unauthorized(message = 'Unauthorized', code = 'UNAUTHORIZED') {
+    return new ApiError(401, message, code);
   }
 
-  static notFound(message = 'Resource not found') {
-    return new ApiError(404, message);
+  static notFound(message = 'Resource not found', code = 'NOT_FOUND') {
+    return new ApiError(404, message, code);
   }
 
-  static conflict(message, details) {
-    return new ApiError(409, message, details);
+  static conflict(message, code = 'CONFLICT') {
+    return new ApiError(409, message, code);
   }
 
-  static internal(message = 'Internal server error', details) {
-    return new ApiError(500, message, details);
+  static tooMany(message = 'Too many requests', code = 'RATE_LIMITED') {
+    return new ApiError(429, message, code);
+  }
+
+  static internal(message = 'Internal server error', code = 'INTERNAL_ERROR') {
+    return new ApiError(500, message, code);
   }
 }
 

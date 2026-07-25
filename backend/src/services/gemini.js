@@ -59,7 +59,11 @@ async function callOpenRouter(prompt) {
         throw ApiError.badRequest('Invalid or missing OpenRouter API key');
       }
       if (response.status === 429) {
-        throw ApiError.tooMany('OpenRouter rate limit exceeded. Try again later.');
+        const retryAfter = response.headers.get('retry-after');
+        const waitMsg = retryAfter
+          ? `Please wait ${retryAfter} seconds and try again.`
+          : 'Please wait a moment and try again.';
+        throw ApiError.tooMany(`Our AI service is temporarily busy. ${waitMsg}`);
       }
       throw ApiError.internal(`OpenRouter request failed (HTTP ${response.status})`);
     }

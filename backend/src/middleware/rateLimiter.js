@@ -8,7 +8,7 @@ const aiLimiter = rateLimit({
   message: {
     success: false,
     error: {
-      message: 'Too many requests. Please try again in a minute.',
+      message: 'You are making requests too quickly. Please wait a moment and try again.',
       code: 'RATE_LIMITED',
     },
   },

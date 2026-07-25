@@ -1,3 +1,105 @@
+const config = require('../config');
+const logger = require('../utils/logger');
+const ApiError = require('../utils/ApiError');
+
+const AI_TIMEOUT_MS = 120000;
+
+function extractJson(text) {
+  const match = text.match(/```(?:json)?\s*\n?([\s\S]*?)```/);
+  if (match) {
+    const extracted = match[1].trim();
+    try {
+      JSON.parse(extracted);
+      return extracted;
+    } catch {
+      return text;
+    }
+  }
+  return text;
+}
+
+async function callOpenRouter(prompt) {
+  const { apiKey, model, baseUrl } = config.openrouter;
+
+  if (!apiKey) {
+    throw ApiError.internal('OpenRouter API key not configured. Set OPENROUTER_API_KEY in .env.');
+  }
+
+  const body = {
+    model,
+    messages: [{ role: 'user', content: prompt }],
+  };
+
+  logger.debug('OpenRouter.call', { model, promptLength: prompt.length });
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(baseUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timer);
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      logger.error('OpenRouter returned error', {
+        status: response.status,
+        body: text,
+      });
+
+      if (response.status === 401) {
+        throw ApiError.badRequest('Invalid or missing OpenRouter API key');
+      }
+      if (response.status === 429) {
+        throw ApiError.tooMany('OpenRouter rate limit exceeded. Try again later.');
+      }
+      throw ApiError.internal(`OpenRouter request failed (HTTP ${response.status})`);
+    }
+
+    const data = await response.json();
+    const rawContent = data?.choices?.[0]?.message?.content || '';
+    const content = extractJson(rawContent);
+    return { role: 'assistant', content };
+  } catch (err) {
+    clearTimeout(timer);
+
+    if (err instanceof ApiError) throw err;
+
+    if (err.name === 'AbortError') {
+      logger.error('OpenRouter request timed out', { timeoutMs: AI_TIMEOUT_MS });
+      throw ApiError.internal('OpenRouter request timed out', 'AI_TIMEOUT');
+    }
+
+    logger.error('OpenRouter request failed', { error: err.message });
+    throw ApiError.internal('AI request failed', err.message);
+  }
+}
+
+const ai = {
+  async generate(prompt) {
+    logger.debug('AI.generate', { promptLength: prompt.length });
+    return callOpenRouter(prompt);
+  },
+
+  async chat(message) {
+    logger.debug('AI.chat', { messageLength: message.length });
+    return callOpenRouter(message);
+  },
+};
+
+module.exports = ai;
+
+/*
+=== ORIGINAL GEMINI IMPLEMENTATION (preserved for reference) ===
+
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const config = require('../config');
 const logger = require('../utils/logger');
@@ -52,5 +154,4 @@ const gemini = {
     }
   },
 };
-
-module.exports = gemini;
+*/

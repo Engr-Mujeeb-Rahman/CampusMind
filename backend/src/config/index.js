@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const requiredInProduction = ['GEMINI_API_KEY'];
+const requiredInProduction = ['OPENROUTER_API_KEY'];
 const missing = [];
 
 if (process.env.NODE_ENV === 'production') {
@@ -22,9 +22,10 @@ const config = {
   cors: {
     origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   },
-  gemini: {
-    apiKey: process.env.GEMINI_API_KEY || '',
-    model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+  openrouter: {
+    apiKey: process.env.OPENROUTER_API_KEY || '',
+    model: process.env.OPENROUTER_MODEL || 'openai/gpt-4o-mini',
+    baseUrl: process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1/chat/completions',
   },
   n8n: {
     webhookUrl: process.env.N8N_WEBHOOK_URL || '',
